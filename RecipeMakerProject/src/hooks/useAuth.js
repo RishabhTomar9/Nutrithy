@@ -18,7 +18,7 @@ export function useAuth() {
       if (firebaseUser) {
         // ✅ Send user info to backend on login
         try {
-          await fetch('http://localhost:5000/user/login', {
+          await fetch(`${import.meta.env.VITE_API_URL}/user/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
