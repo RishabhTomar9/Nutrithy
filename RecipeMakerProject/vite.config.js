@@ -17,7 +17,7 @@ export default defineConfig({
     alias: {
       stream: 'stream-browserify',
       buffer: 'buffer',
-      process: 'process/browser',
+      process: 'process',
     },
   },
   optimizeDeps: {
