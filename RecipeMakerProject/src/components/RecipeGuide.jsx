@@ -28,7 +28,7 @@ export default function RecipeGuide({ scrollRef }) {
 
   // Example fetch in RecipeGuide.jsx
   useEffect(() => {
-    fetch('/api/recipes')
+    fetch(`${import.meta.env.VITE_API_URL}/api/recipes`)
       .then((res) => res.json())
       .then((data) => {
         // Do something with data
@@ -48,7 +48,7 @@ export default function RecipeGuide({ scrollRef }) {
 
     try {
       // ✅ Log query
-      await fetch('/api/searches', {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/searches`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, timestamp: new Date().toISOString() }),
@@ -125,7 +125,7 @@ export default function RecipeGuide({ scrollRef }) {
         setSteps(geminiSteps)
 
         // ✅ Save to backend
-        await fetch('/api/recipes/ai', {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/ai`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

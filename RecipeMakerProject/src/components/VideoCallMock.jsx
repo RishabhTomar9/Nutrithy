@@ -16,7 +16,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import KitchenIcon from '@mui/icons-material/Kitchen';
 
 // --- Socket.IO Connection ---
-const socket = io("http://localhost:5000"); // Ensure this matches your backend server address
+const socket = io("https://nutrithy.onrender.com"); // Ensure this matches your backend server address
 
 // --- Helper Component for Each Participant's Video ---
 const ParticipantVideo = ({ peer, micOn, videoOn, displayName }) => {
