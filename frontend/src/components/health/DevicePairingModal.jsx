@@ -92,6 +92,7 @@ const DevicePairingModal = memo(({ isVisible, onClose, onSuccess }) => {
     };
     
     const handleTouchEnd = (e) => {
+    console.log(e)
       if (modalRef.current) {
         const transform = modalRef.current.style.transform;
         const translateY = parseInt(transform.match(/translateY\((.+)px\)/)?.[1] || 0);

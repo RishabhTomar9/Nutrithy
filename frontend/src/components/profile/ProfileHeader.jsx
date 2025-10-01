@@ -41,18 +41,17 @@ const ProfileHeader = ({
       initial={{ opacity: 0, y: -30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="relative overflow-hidden"
+      className="relative overflow-hidden pt-30"
     >
       {/* Background Cover */}
-      <div className="h-32 sm:h-40 lg:h-48 bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 relative">
+      {/* <div className="h-32 sm:h-40 lg:h-48 bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 relative">
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         
-        {/* Floating Elements */}
         <div className="absolute top-4 sm:top-6 lg:top-8 right-4 sm:right-6 lg:right-8 w-16 sm:w-20 lg:w-24 h-16 sm:h-20 lg:h-24 bg-white/10 rounded-full blur-xl" />
         <div className="absolute bottom-6 sm:bottom-8 lg:bottom-12 left-6 sm:left-8 lg:left-12 w-12 sm:w-14 lg:w-16 h-12 sm:h-14 lg:h-16 bg-emerald-300/20 rounded-full blur-lg" />
         <div className="absolute top-8 sm:top-12 lg:top-16 left-1/4 sm:left-1/3 w-6 sm:w-7 lg:w-8 h-6 sm:h-7 lg:h-8 bg-cyan-300/30 rounded-full blur-sm" />
-      </div>
+      </div> */}
 
       {/* Content Container */}
       <div className="relative -mt-12 sm:-mt-16 lg:-mt-20 px-4 sm:px-6">

@@ -71,7 +71,7 @@ export default function UserProfile({
   // Loading state with modern loader
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 relative">
+      <div className="min-h-screen relative">
         {/* Background Pattern */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-emerald-400/5 blur-3xl animate-pulse" />
@@ -89,7 +89,7 @@ export default function UserProfile({
   // Error state with modern design
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -197,19 +197,19 @@ export default function UserProfile({
   return (
     <div className="min-h-screen">
       {/* Background Pattern */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-emerald-400/5 blur-3xl" />
         <div className="absolute top-1/2 -left-40 w-80 h-80 rounded-full bg-blue-400/5 blur-3xl" />
         <div className="absolute -bottom-40 left-1/3 w-80 h-80 rounded-full bg-purple-400/5 blur-3xl" />
-      </div>
+      </div> */}
 
       {/* Main Content */}
-      <div className="px-10 pt-8 w-full mx-auto flex flex-col gap-8 max-w-7xl">
+      <div className="px-10 w-full mx-auto flex flex-col gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="px-10 pt-8 w-full mx-auto flex flex-col gap-8 max-w-7xl"
+          className="px-10 w-full mx-auto flex flex-col gap-8"
         >
           {/* Modern Profile Header */}
           <Suspense fallback={<LoadingFallback message="Loading profile header..." minimal />}>
@@ -244,20 +244,18 @@ export default function UserProfile({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="mt-8 lg:mt-12"
+              className="mt-5"
             >
-              <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl lg:rounded-3xl p-6 lg:p-8 border border-gray-700/50">
                 <HealthDataDisplay 
                   showConnectionButtons={true} 
                   onConnect={() => setShowDevicePairing(true)} 
                 />
-              </div>
             </motion.div>
           )}
 
           {/* Enhanced Components Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 mt-8 lg:mt-12">
-            <div className="space-y-6 lg:space-y-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 mt-5">
+            <div className="space-y-6">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -277,7 +275,7 @@ export default function UserProfile({
               </motion.div>
             </div>
             
-            <div className="space-y-6 lg:space-y-8">
+            <div className="space-y-6">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -301,7 +299,7 @@ export default function UserProfile({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.0, duration: 0.6 }}
-              className="mt-8 lg:mt-12"
+              className="mt-5"
             >
               <AccountSettings
                 showAccountManagement={showAccountManagement}

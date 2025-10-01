@@ -12,7 +12,8 @@ import {
   LogOut,
   User,
   Menu,
-  X
+  X,
+  Video
 } from 'lucide-react';
 import AnimatedLogo from '../logo/AnimatedLogo';
 
@@ -54,6 +55,7 @@ export default function Navbar() {
   const navigationItems = useMemo(() => [
     { name: 'Dashboard', icon: Home, path: '/' },
     { name: 'Recipes', icon: ChefHat, path: '/recipes' },
+    { name: 'Video Call', icon: Video, path: '/video-call' },
     { name: 'Community', icon: Users, path: '/community' },
     { name: 'Activity', icon: Activity, path: '/activity' },
     { name: 'Diet Planner', icon: Calendar, path: '/diet-planner' },

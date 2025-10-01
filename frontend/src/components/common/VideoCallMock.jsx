@@ -17,8 +17,6 @@ const SOCKET_SERVER = import.meta.env.VITE_SOCKET_SERVER || "http://localhost:50
 
 // Styled Components
 const VideoContainer = styled.div`
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1rem;
   color: white;
   display: flex;

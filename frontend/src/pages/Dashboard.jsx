@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import DragDropBoard, { BoardContext } from '../components/diet/DragDropBoard'
 import VoiceInput from '../components/common/VoiceInput'
 import ThreadBackground from '../components/common/ThreadBackground'
-import VideoCallMock from '../components/common/VideoCallMock'
+// import VideoCallMock from '../components/common/VideoCallMock'
 import DietPlanner from '../components/diet/DietPlanner'
 import TagAnimator from '../components/common/TagAnimator'
 import EmojiReactions from '../components/community/EmojiReactions'
@@ -89,9 +89,9 @@ function VoiceWithVideoSection() {
   return (
     <motion.div className="flex flex-col gap-6">
       <VoiceInput onVoiceAdd={(text) => addCard(activeColumn, text)} />
-      <motion.div className="rounded-xl overflow-hidden shadow-lg">
+      {/* <motion.div className="rounded-xl overflow-hidden shadow-lg">
         <VideoCallMock />
-      </motion.div>
+      </motion.div> */}
     </motion.div>
   )
 }
@@ -125,6 +125,12 @@ export default function Dashboard() {
           <StatsCard icon={<FiHeart size={24} />} title="Favorite Recipes" value="5" color="from-rose-500 to-pink-600" />
         </div>
 
+
+        {/* Drag + Voice + Video */}
+        <DragDropBoard>
+          <VoiceWithVideoSection />
+        </DragDropBoard>
+
         {/* Health Metrics Quick Overview */}
         <motion.div 
           className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50"
@@ -134,21 +140,16 @@ export default function Dashboard() {
         >
           <HealthDataDisplay showConnectionButtons={true} onConnect={() => setShowDevicePairing(true)} />
         </motion.div>
-
-        {/* Drag + Voice + Video */}
-        <DragDropBoard>
-          <VoiceWithVideoSection />
-        </DragDropBoard>
-
+        
         {/* AI Diet Planner */}
         <div>
           {/* <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-green-400">AI</span> Diet Planner
             <TagAnimator tags={["Smart", "Personalized", "Nutritious"]} />
           </h2> */}
-          <div>
+          {/* <div>
             <DietPlanner />
-          </div>
+          </div> */}
         </div>
 
         {/* Emoji Reactions */}

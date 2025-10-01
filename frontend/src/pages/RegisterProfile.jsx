@@ -94,10 +94,10 @@ export default function RegisterProfile() {
   };
 
   return (
-    <div className="min-h-screen max-w-[80vw] flex items-center justify-center p-6 text-white py-15">
+    <div className="min-h-screen px-6 text-white">
       <motion.div
         ref={formRef}
-        className="rounded-3xl p-8 w-full max-w-5xl bg-gray-800 shadow-2xl"
+        className="rounded-3xl p-8 w-full bg-gray-800 shadow-2xl"
       >
         <h1 className="text-3xl font-bold mb-6 text-center text-white">
           Complete Your Profile

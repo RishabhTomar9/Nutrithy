@@ -10,6 +10,7 @@ const RegisterProfile = lazy(() => import('../pages/RegisterProfile'));
 const DietPlanner = lazy(() => import('../components/diet/DietPlanner'));
 const SharedDietPlan = lazy(() => import('../pages/SharedDietPlan'));
 const ActivityPage = lazy(() => import('../pages/ActivityPage'));
+const VideoCallMock = lazy(() => import('../components/common/VideoCallMock'));
 
 // Route configuration with metadata
 export const routeConfig = [
@@ -21,6 +22,15 @@ export const routeConfig = [
     requiresAuth: true,
     requiresProfile: true,
     preloadOnHover: true,
+  },
+  {
+    path: '/video-call',
+    element: VideoCallMock,
+    title: 'Nutrithy - Video Call',
+    description: 'Join a video call with nutrition experts',
+    requiresAuth: true,
+    requiresProfile: true,
+    preloadOnHover: false,
   },
   {
     path: '/login',
