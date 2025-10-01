@@ -1,0 +1,194 @@
+import { useContext, useEffect, useState, useRef } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import DragDropBoard, { BoardContext } from '../components/DragDropBoard'
+import VoiceInput from '../components/VoiceInput'
+import VideoCallMock from '../components/VideoCallMock'
+import CookModeView from '../components/CookModeView'
+import TagAnimator from '../components/TagAnimator'
+import EmojiReactions from '../components/EmojiReactions'
+import RecipeGuide from '../components/RecipeGuide'
+import ThreadBackground from '../components/ThreadBackground'
+import DietPlanner from '../components/DietPlanner'
+import { motion } from 'framer-motion'
+import { gsap } from 'gsap'
+import { FiChefHat, FiClock, FiHeart } from 'react-icons/fi'
+
+// ✅ Stats Card Component
+function StatsCard({ icon, title, value, color }) {
+  return (
+    <motion.div 
+      className={`bg-gradient-to-br ${color} p-4 rounded-xl shadow-lg text-white flex items-center gap-4`}
+      whileHover={{ scale: 1.05, y: -5 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+    >
+      <div className="bg-white/20 p-3 rounded-lg">{icon}</div>
+      <div>
+        <h3 className="text-sm font-medium text-white/80">{title}</h3>
+        <p className="text-2xl font-bold">{value}</p>
+      </div>
+    </motion.div>
+  )
+}
+
+// ✅ Greeting with typing animation and GSAP effects
+function GreetingHeader({ user }) {
+  const fullText = user?.displayName ? `, ${user.displayName}` : ''
+  const [typedText, setTypedText] = useState('')
+  const headerRef = useRef(null)
+
+  useEffect(() => {
+    let i = 0
+    const interval = setInterval(() => {
+      setTypedText(fullText.slice(0, i + 1))
+      i++
+      if (i >= fullText.length) clearInterval(interval)
+    }, 150)
+    return () => clearInterval(interval)
+  }, [fullText])
+
+  useEffect(() => {
+    if (headerRef.current) {
+      gsap.fromTo(
+        ".chef-emoji",
+        { y: -10, rotate: -5 },
+        { y: 5, rotate: 5, duration: 1.5, repeat: -1, yoyo: true, ease: "elastic.out(1, 0.3)" }
+      )
+    }
+  }, [])
+
+  return (
+    <motion.div 
+      ref={headerRef}
+      className="text-center py-6"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        className="inline-block bg-gradient-to-r from-green-400 to-emerald-600 text-transparent bg-clip-text"
+        whileHover={{ scale: 1.05 }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        <h1 className="lg:text-4xl text-2xl font-bold mt-25 flex items-center justify-center gap-2">
+          Hello Chef{typedText} <span className="chef-emoji">👨‍🍳</span>
+        </h1>
+      </motion.div>
+      <motion.p 
+        className="text-md text-gray-300 mt-3 italic"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
+        Ready to cook something delicious today?
+      </motion.p>
+    </motion.div>
+  )
+}
+
+// ✅ Voice + Video Section inside board
+function VoiceWithVideoSection() {
+  const { addCard, activeColumn } = useContext(BoardContext)
+  
+  return (
+    <motion.div 
+      className="flex flex-col gap-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, staggerChildren: 0.2 }}
+    >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <VoiceInput onVoiceAdd={(text) => addCard(activeColumn, text)} />
+      </motion.div>
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        whileHover={{ scale: 1.02 }}
+        className="rounded-xl overflow-hidden shadow-lg"
+      >
+        <VideoCallMock />
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ✅ Main Page
+export default function RecipePage() {
+  const { user } = useAuth()
+  const pageRef = useRef(null)
+  
+  useEffect(() => {
+    if (pageRef.current) {
+      gsap.fromTo(
+        pageRef.current.children,
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, stagger: 0.1, duration: 0.6, ease: "power2.out" }
+      )
+    }
+  }, [])
+
+  return (
+   <>
+     <ThreadBackground />
+     <motion.div 
+       ref={pageRef}
+       className="px-10 py-5 w-full mx-auto flex flex-col gap-8 max-w-7xl"
+       initial={{ opacity: 0 }}
+       animate={{ opacity: 1 }}
+       transition={{ duration: 0.5 }}
+     >
+       <GreetingHeader user={user} />
+
+       <motion.div
+         initial={{ opacity: 0, y: 20 }}
+         animate={{ opacity: 1, y: 0 }}
+         transition={{ delay: 0.2, duration: 0.5 }}
+         className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-700/50 backdrop-blur-sm"
+       >
+         <DragDropBoard>
+           <VoiceWithVideoSection />
+         </DragDropBoard>
+       </motion.div>
+
+       {/* Stats Section */}
+       <motion.div 
+         className="grid grid-cols-1 md:grid-cols-3 gap-4 my-4"
+         initial={{ opacity: 0, y: 20 }}
+         animate={{ opacity: 1, y: 0 }}
+         transition={{ delay: 0.3, duration: 0.5 }}
+       >
+         <StatsCard icon={<FiChefHat size={24} />} title="Recipes Created" value="12" color="from-blue-500 to-indigo-600" />
+         <StatsCard icon={<FiClock size={24} />} title="Cooking Time" value="3.5 hrs" color="from-amber-500 to-orange-600" />
+         <StatsCard icon={<FiHeart size={24} />} title="Favorite Recipes" value="5" color="from-rose-500 to-pink-600" />
+       </motion.div>
+
+       {/* AI Diet Planner */}
+       <motion.div className="mt-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}>
+         <motion.h2 
+           className="text-xl font-bold text-white mb-4 flex items-center gap-2"
+           initial={{ opacity: 0, x: -20 }}
+           animate={{ opacity: 1, x: 0 }}
+           transition={{ delay: 0.5, duration: 0.3 }}
+         >
+           <span className="text-green-400">AI</span> Diet Planner
+           <TagAnimator tags={["Smart", "Personalized", "Nutritious"]} />
+         </motion.h2>
+         <motion.div 
+           className="bg-gradient-to-r from-gray-900/50 to-gray-800/50 p-6 rounded-xl shadow-lg border border-gray-700/50 backdrop-blur-sm"
+           whileHover={{ scale: 1.01 }}
+           transition={{ duration: 0.2 }}
+         >
+           <DietPlanner />
+         </motion.div>
+       </motion.div>
+
+       {/* Emoji Reactions */}
+       <motion.div className="mt-8 flex justify-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 0.5 }}>
+         <EmojiReactions />
+       </motion.div>
+     </motion.div>
+   </>
+  )
+}

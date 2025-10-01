@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+/* Custom emerald scrollbar utilities using standard CSS */
+.scrollbar-emerald {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(5, 150, 105, 0.8) rgba(5, 150, 105, 0.1);
+}
+
+.scrollbar-emerald::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-emerald::-webkit-scrollbar-track {
+  background-color: rgba(5, 150, 105, 0.1);
+  border-radius: 10px;
+}
+
+.scrollbar-emerald::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.8) 0%, rgba(16, 185, 129, 0.9) 50%, rgba(5, 150, 105, 0.8) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(5, 150, 105, 0.3);
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scrollbar-emerald::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 1) 0%, rgba(16, 185, 129, 1) 50%, rgba(5, 150, 105, 1) 100%);
+  border: 1px solid rgba(5, 150, 105, 0.5);
+  box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+  transform: scale(1.1);
+}
+
+.scrollbar-emerald::-webkit-scrollbar-corner {
+  background-color: rgba(5, 150, 105, 0.1);
+}
+
+.scrollbar-emerald-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(5, 150, 105, 0.6) transparent;
+}
+
+.scrollbar-emerald-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-emerald-thin::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.scrollbar-emerald-thin::-webkit-scrollbar-thumb {
+  background: rgba(5, 150, 105, 0.6);
+  border-radius: 6px;
+  border: none;
+}
+
+.scrollbar-emerald-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(5, 150, 105, 0.8);
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hover::-webkit-scrollbar {
+  width: 0px;
+  transition: width 0.3s ease;
+}
+
+.scrollbar-hover:hover::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-hover::-webkit-scrollbar-track {
+  background-color: rgba(5, 150, 105, 0.1);
+  border-radius: 10px;
+}
+
+.scrollbar-hover::-webkit-scrollbar-thumb {
+  background: rgba(5, 150, 105, 0.6);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.scrollbar-hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(5, 150, 105, 0.8);
+}
+
+/* Global emerald scrollbar theme */
+body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(5, 150, 105, 0.8) rgba(5, 150, 105, 0.1);
+}
+
+body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+body::-webkit-scrollbar-track {
+  background-color: rgba(5, 150, 105, 0.1);
+  border-radius: 10px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.8) 0%, rgba(16, 185, 129, 0.9) 50%, rgba(5, 150, 105, 0.8) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(5, 150, 105, 0.3);
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 1) 0%, rgba(16, 185, 129, 1) 50%, rgba(5, 150, 105, 1) 100%);
+  border: 1px solid rgba(5, 150, 105, 0.5);
+  box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+  transform: scale(1.1);
+}
+
+/* Hide scrollbar for mobile navigation */
+.mobile-nav-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.mobile-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+@layer utilities {
+  .animate-fadeSlideIn {
+    animation: fadeSlideIn 0.6s forwards;
+  }
+
+  @keyframes fadeSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Custom animation delays */
+  .animation-delay-0 { animation-delay: 0ms; }
+  .animation-delay-150 { animation-delay: 150ms; }
+  .animation-delay-300 { animation-delay: 300ms; }
+  .animation-delay-450 { animation-delay: 450ms; }
+}
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.45s ease-out forwards;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.45s ease-out forwards;
+}
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 55%;
+  }
+}
+
+.animate-typing {
+  display: inline-block;
+  animation: typing 2s steps(40, end) forwards;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/*. Add to your global or component-level CSS */
+.column-hover {
+  background-color: rgba(34, 197, 94, 0.1); /* light green tint */
+  transition: background-color 0.2s ease;
+}
