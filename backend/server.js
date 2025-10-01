@@ -21,7 +21,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Middleware
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:5173" ;
+const FRONTEND_ORIGIN = process.env.ALLOWED_ORIGINS || "http://localhost:5173" ;
 app.use(
   cors({
     origin: FRONTEND_ORIGIN,
