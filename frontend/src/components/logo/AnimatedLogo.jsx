@@ -35,7 +35,7 @@ export default function AnimatedLogo() {
             <motion.svg
               viewBox="0 0 220 60"
               width="300"
-              height="55"
+              height="50"
               initial={{ strokeDasharray: 1000, strokeDashoffset: 1000 }}
               animate={{ strokeDashoffset: 0 }}
               transition={{ duration: 4, delay: 0.3 }}
@@ -43,7 +43,7 @@ export default function AnimatedLogo() {
               <text
                 x="0"
                 y="45"
-                fontSize="45"
+                fontSize="40"
                 className="font-bold"
                 fill="none"
                 stroke="#22c55e"
