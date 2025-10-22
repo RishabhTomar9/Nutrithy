@@ -99,7 +99,7 @@ export default function CookModeView({ steps = [], description = '', ingredients
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8 text-white flex flex-col gap-6">
+    <div className="min-h-screen p-4 text-white flex flex-col gap-6">
 
       {/* TIMER */}
       <motion.div className="self-center mb-4">

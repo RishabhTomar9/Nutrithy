@@ -201,48 +201,7 @@ const HealthDataDisplay = memo(({ showConnectionButtons = false, onConnect }) =>
     return connected ? Wifi : WifiOff;
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4 sm:space-y-6">
-        {/* Loading Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gray-700 animate-pulse"></div>
-            <div className="space-y-2">
-              <div className="h-4 sm:h-5 bg-gray-700 rounded w-32 sm:w-40 animate-pulse"></div>
-              <div className="h-3 bg-gray-700 rounded w-24 sm:w-32 animate-pulse"></div>
-            </div>
-          </div>
-          <div className="w-16 h-8 bg-gray-700 rounded-lg animate-pulse"></div>
-        </div>
-
-        {/* Loading Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[...Array(isMobile ? 2 : isTablet ? 4 : 6)].map((_, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-gray-700/50 animate-pulse"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gray-700"></div>
-                  <div className="h-4 bg-gray-700 rounded w-20 sm:w-24"></div>
-                </div>
-                <div className="h-3 bg-gray-700 rounded w-12"></div>
-              </div>
-              <div className="space-y-3">
-                <div className="h-8 sm:h-10 bg-gray-700 rounded w-3/4"></div>
-                <div className="h-2 bg-gray-700 rounded w-full"></div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // Loading state is now handled in the main return with conditional rendering
 
   const hasConnectedDevices = connectionStatus.googleFit || connectionStatus.smartwatch;
   const hasHealthData = healthData && Object.values(healthData).some(value => 
@@ -257,6 +216,14 @@ const HealthDataDisplay = memo(({ showConnectionButtons = false, onConnect }) =>
         animate={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0"
       >
+        {isLoading && (
+          <div className="absolute top-0 left-0 right-0 flex justify-center p-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800/70 backdrop-blur-sm rounded-full border border-gray-700/50 text-xs text-gray-300">
+              <RefreshCw size={12} className="animate-spin text-blue-400" />
+              <span>Syncing data...</span>
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-3 sm:gap-4">
           <motion.div 
             className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm border border-blue-500/20 flex items-center justify-center"

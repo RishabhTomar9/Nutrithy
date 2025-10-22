@@ -175,9 +175,9 @@ export default function CookStep({ index, step, ingredients, onIngredientToggle,
       </AnimatePresence>
 
       {/* Emoji Reactions */}
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <EmojiReactions stepId={index} />
-      </div>
+      </div> */}
 
       {/* Completion effects */}
       <AnimatePresence>

@@ -151,7 +151,7 @@ export default function RecipeGuide({ scrollRef }) {
         throw new Error('Gemini API key is missing')
       }
 
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' })
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
       const prompt = `You are a helpful recipe assistant. Provide detailed cooking instructions for the recipe: "${query}".
 1. Begin with a detailed description of the dish max of 50 words.
@@ -524,9 +524,9 @@ export default function RecipeGuide({ scrollRef }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-col items-center justify-center p-8 bg-slate-900/70 backdrop-blur-md rounded-2xl border border-slate-700/50 shadow-xl mt-6"
+          className="flex flex-col items-center justify-center p-8 bg-slate-900/70 backdrop-blur-md rounded-2xl border border-slate-700/50 shadow-xl mt-6 mb-5"
         >
-          <motion.div 
+          {/* <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -536,7 +536,7 @@ export default function RecipeGuide({ scrollRef }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
             </svg>
-          </motion.div>
+          </motion.div> */}
           <motion.h3 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -737,7 +737,7 @@ export default function RecipeGuide({ scrollRef }) {
         )}
 
         {steps && (
-          <motion.div className="space-y-4">
+          <motion.div className="space-y-4 mt-6">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -759,8 +759,8 @@ export default function RecipeGuide({ scrollRef }) {
                 )}
               </motion.div>
               )}
-                      <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-white">{query}</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-4xl upper font-bold text-white">{query.toUpperCase()}</h2>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

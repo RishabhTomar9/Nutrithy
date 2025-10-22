@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSidebar } from '../../hooks/useSidebar';
 import { Home, ChefHat, Users, Activity, Calendar, User } from 'lucide-react';
+import AnimatedLogo from "../logo/AnimatedLogo";
 
 // Register GSAP plugin
 if (typeof window !== "undefined") {
@@ -186,26 +187,7 @@ const Footer = () => {
                   </div>
                 </div>
                 <div className="flex justify-center">
-                  <motion.svg
-                    viewBox="0 0 180 60"
-                    width="220"
-                    height="60"
-                    initial={{ strokeDasharray: 1000, strokeDashoffset: 1000 }}
-                    animate={{ strokeDashoffset: 0 }}
-                    transition={{ duration: 6, delay: 0.3 }}
-                  >
-                    <text
-                      x="-20"
-                      y="45"
-                      fontSize="32"
-                      className="sm:font-bold"
-                      fill="none"
-                      stroke="#22c55e"
-                      strokeWidth="2"
-                    >
-                      Nutrithy 🍳
-                    </text>
-                  </motion.svg>
+                 <AnimatedLogo />
                 </div>
               </motion.div>
               
@@ -813,9 +795,7 @@ const Footer = () => {
               </motion.button>
             </div>
           </div>
-        </motion.div>
-        
-        
+        </motion.div>        
         </div>
       </div>
       
