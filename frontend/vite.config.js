@@ -53,7 +53,7 @@ export default defineConfig({
             'firebase/storage',
           ],
           ui: ['framer-motion', 'lucide-react'],
-          utils: ['axios', 'lodash'],
+          utils: ['axios'],
         },
       },
     },
