@@ -182,13 +182,12 @@ export default function Navbar() {
                 animate={{ opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
-             <AnimatedLogo />
               </motion.span>
             </motion.div>
           )}
           
           {/* Collapsed state indicator */}
-          {(isCollapsed && !isHovering) && (
+          {/* {(isCollapsed && !isHovering) && (
             <motion.div 
               className="flex justify-center"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -201,7 +200,7 @@ export default function Navbar() {
                 transition={{ duration: 2, repeat: Infinity }}
               />
             </motion.div>
-          )}
+          )} */}
         </div>
 
         {/* Desktop Navigation */}
