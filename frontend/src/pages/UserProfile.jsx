@@ -195,7 +195,7 @@ export default function UserProfile({
   const isOwnProfile = !userId || profile?.uid === profile?.currentUserId;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-20">
       {/* Background Pattern */}
       {/* <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-emerald-400/5 blur-3xl" />
@@ -204,12 +204,12 @@ export default function UserProfile({
       </div> */}
 
       {/* Main Content */}
-      <div className="px-10 w-full mx-auto flex flex-col gap-8">
+      <div className="px-8 w-full mx-auto flex flex-col gap-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="px-10 w-full mx-auto flex flex-col gap-8"
+          className="w-full mx-auto flex flex-col"
         >
           {/* Modern Profile Header */}
           <Suspense fallback={<LoadingFallback message="Loading profile header..." minimal />}>

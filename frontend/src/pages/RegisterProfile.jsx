@@ -94,7 +94,7 @@ export default function RegisterProfile() {
   };
 
   return (
-    <div className="min-h-screen px-6 text-white">
+    <div className="min-h-screen px-6 text-white pt-28">
       <motion.div
         ref={formRef}
         className="rounded-3xl p-8 w-full bg-gray-800 shadow-2xl"

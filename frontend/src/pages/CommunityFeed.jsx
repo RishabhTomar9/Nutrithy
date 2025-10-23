@@ -178,8 +178,7 @@ export default function CommunityFeed() {
 
   return (
     <>
-      <ThreadBackground />
-      <div className="min-h-screen relative z-10 pt-10">
+      <div className="min-h-screen relative z-10 pt-20">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

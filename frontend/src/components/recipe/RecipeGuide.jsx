@@ -331,7 +331,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   return (
     <>
-      <motion.div ref={scrollRef} className="w-full px-5">
+      <motion.div ref={scrollRef} className="w-full px-5 pt-28">
         <motion.div className="lex flex-col items-center text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-green-400">
             AI Recipe Guide
@@ -364,7 +364,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
             <motion.input
               type="text"
               placeholder="Search any recipe with AI..."
-              className="flex-1 w-full p-4 pl-10 rounded-lg border border-gray-600 bg-gray-800/90 text-white shadow-inner focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all duration-300 backdrop-blur-sm"
+              className="flex-1 w-full p-4 mt-5 mb-2 rounded-lg border border-gray-600 bg-gray-800/90 text-white shadow-inner focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all duration-300 backdrop-blur-sm"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -386,7 +386,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
           <motion.button
             onClick={handleSearch}
             disabled={isLoading || !query.trim()}
-            className="px-5 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-green-500/20 transition-all duration-300 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="px-5 py-4 mb-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-green-500/20 transition-all duration-300 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             initial={{ opacity: 0 }}
@@ -398,7 +398,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
                 <motion.div 
                   className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
                 ></motion.div>
                 <span>Searching...</span>
               </>

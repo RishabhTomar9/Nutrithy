@@ -344,18 +344,16 @@ function AppContent() {
       <Navbar />
       <main 
         id="main-content"
-        className={`flex-1 relative transition-all duration-300 scroll-smooth min-h-screen ${
-          user ? 'pt-44 lg:pt-20 pb-20' : 'pt-20 pb-20'
-        }`}
+        className={`flex-1 relative transition-all duration-300 scroll-smooth min-h-screen`}
         style={{ 
           marginLeft: user && !isMobile ? `${mainMargin}px` : 0,
-          paddingBottom: user ? '8rem' : '2rem' // Extra space for footer
+          // paddingBottom: user ? '8rem' : '2rem' // Extra space for footer
         }}
         role="main"
         tabIndex={-1}
       >
         <ThreadBackground />
-        <div className="relative z-10 min-h-[calc(100vh-12rem)]">
+        <div className="relative z-10">
           <AnimatePresence mode="wait" initial={false}>
             <Routes location={location} key={location.pathname}>
               {routes}

@@ -213,7 +213,7 @@ const SharedDietPlan = () => {
   const plan = dietPlan.plan;
 
   return (
-    <div className={`min-h-screen ${isDarkTheme ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'} py-25 px-4 sm:px-6 lg:px-8 transition-colors duration-300`}>
+    <div className={`min-h-screen ${isDarkTheme ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'} pt-25 px-4 sm:px-6 lg:px-8 transition-colors duration-300`}>
       <div className="max-w-[80vw] mx-auto relative">
         {/* Theme Toggle Button */}
         <motion.button

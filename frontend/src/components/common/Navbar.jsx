@@ -374,7 +374,7 @@ export default function Navbar() {
           <AnimatedLogo />
 
           {/* Enhanced User Profile Button */}
-          <motion.button
+          {/* <motion.button
             onClick={() => handleNavigation('/profile')}
             className="group relative p-2.5 rounded-xl bg-white/20 dark:bg-gray-700/20 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 hover:bg-white/40 dark:hover:bg-gray-600/30 transition-all duration-300"
             whileHover={{ scale: 1.05 }}
@@ -393,7 +393,6 @@ export default function Navbar() {
                     alt="Profile"
                     className="w-7 h-7 rounded-full object-cover border-2 border-white/40 group-hover:border-emerald-400/60 transition-all duration-300"
                   />
-                  {/* Online indicator */}
                   <motion.div 
                     className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full border border-white dark:border-gray-900 shadow-sm"
                     animate={{ scale: [1, 1.2, 1] }}
@@ -414,7 +413,7 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-          </motion.button>
+          </motion.button> */}
         </div>
       </motion.header>
 
@@ -438,7 +437,7 @@ export default function Navbar() {
               exit="closed"
               variants={mobileSidebarVariants}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed left-0 w-80 backdrop-blur-2xl bg-white/85 dark:bg-gray-900/90 border-r border-white/20 dark:border-gray-700/30 shadow-2xl shadow-black/10 z-40 lg:hidden flex flex-col overflow-hidden"
+              className="fixed left-0 h-screen w-80 backdrop-blur-2xl bg-white/85 dark:bg-gray-900/90 border-r border-white/20 dark:border-gray-700/30 shadow-2xl shadow-black/10 z-40 lg:hidden flex flex-col overflow-hidden"
               style={{
                 top: '80px', // Adjusted to start below fixed logo
                 height: 'calc(100vh - 80px)',
