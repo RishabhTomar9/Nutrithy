@@ -339,7 +339,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
           <p className="text-gray-300 mt-2">
             Your personal AI-powered cooking companion.
           </p>
-          <motion.div className="mt-3">
+          <motion.div className="mt-3 mb-5">
             <TagAnimator tags={['🥦 vegan', '⏳ quick', '🌶️ spicy', '🔥 grilled', '🍰 dessert']} />
           </motion.div>
         </motion.div>
@@ -352,8 +352,6 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
         >
           <motion.div 
             className="relative flex-1 group"
-            whileHover={{ boxShadow: '0 0 15px rgba(74, 222, 128, 0.2)' }}
-            transition={{ duration: 0.3 }}
           >
             <motion.div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-blue-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></motion.div>
             <motion.div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -364,7 +362,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
             <motion.input
               type="text"
               placeholder="Search any recipe with AI..."
-              className="flex-1 w-full p-4 mt-5 mb-2 rounded-lg border border-gray-600 bg-gray-800/90 text-white shadow-inner focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all duration-300 backdrop-blur-sm"
+              className="flex-1 w-full py-4 p-4 mb-2 rounded-lg border border-gray-600 bg-gray-800/90 text-white shadow-inner focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all duration-300 backdrop-blur-sm"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -437,7 +435,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
             </h2>
           </motion.div>
           
-          <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {recentSearches.map((search) => (
               <motion.div
                 key={search._id}
@@ -448,10 +446,10 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
                 <motion.div className="rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-800 h-full flex flex-col relative border border-gray-200 dark:border-gray-700">
                   {/* Image */}
                   <motion.div 
-                    className="h-36 bg-cover bg-center relative"
-                    style={{
-                      backgroundImage: `url(${search.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c'})`
-                    }}
+                    className=" bg-cover bg-center relative"
+                    // style={{
+                    //   backgroundImage: `url(${search.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c'})`
+                    // }}
                   >
                     {/* Favorite Button */}
                     <motion.button
@@ -736,79 +734,97 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
           </motion.div>
         )}
 
-        {steps && (
-          <motion.div className="space-y-4 mt-6">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-xl bg-black/20 backdrop-blur-md p-6 border border-slate-700/50 shadow-xl"
-            > 
-              {recipeImage && (
-           <motion.div className="relative w-full h-48 sm:h-64 mb-6 overflow-hidden rounded-lg">
-                {loadingImage ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
-                    <div className="w-8 h-8 border-3 border-green-400 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                ) : (
-                  <img 
-                    src={recipeImage || DEFAULT_RECIPE_IMAGE} 
-                    alt={query} 
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                  />
-                )}
-              </motion.div>
-              )}
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-4xl upper font-bold text-white">{query.toUpperCase()}</h2>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setCurrentRecipe({
-                      id: `recipe-${Date.now()}`,
-                      title: query,
-                      description: recipeDetails.description,
-                      image: recipeImage,
-                      cookTime: recipeDetails.cookTime,
-                      ingredients: recipeDetails.ingredients,
-                      steps: steps.map(step => step.text),
-                      sourceUrl: window.location.href
-                    });
-                    setShowShareModal(true);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg shadow-lg hover:shadow-green-500/20 transition-all"
-                >
-                  <MdShare /> Share to Community
-                </motion.button>
-              </div>
-              <CookModeView
-                steps={steps}
-                description={recipeDetails.description}
-                ingredients={recipeDetails.ingredients}
-                cookTime={recipeDetails.cookTime}
+      {steps && (
+  <motion.div className="space-y-4 mt-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="relative overflow-hidden rounded-xl backdrop-blur-md p-6 border border-slate-700/50 shadow-xl"
+    > 
+      {/* Background Image with Opacity */}
+      {recipeImage && (
+        <div className="absolute inset-0 z-0">
+          {loadingImage ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
+              <div className="w-8 h-8 border-3 border-green-400 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <>
+              <img 
+                src={recipeImage || DEFAULT_RECIPE_IMAGE} 
+                alt={query} 
+                className="w-full h-full object-cover"
+                style={{ opacity: 0.1 }}
               />
-            </motion.div>
-              <motion.button
-                onClick={() => setSteps(null)}
-                className="flex items-center gap-3 px-5 py-2 rounded-full font-semibold text-green-400 text-sm md:text-base shadow-lg backdrop-blur-sm bg-green-900/20 border border-green-400/30 transition-all duration-300 focus:outline-none"
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                whileHover={{
-                  scale: 1.05,
-                  backgroundColor: 'rgba(16,185,129,0.2)',
-                  color: '#10B981',
-                  boxShadow: '0 8px 20px rgba(16,185,129,0.4)',
-                }}
-                whileTap={{ scale: 0.97, boxShadow: '0 4px 10px rgba(16,185,129,0.3)' }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              >
-                <span className="text-lg md:text-xl animate-pulse">←</span>
-                Back to search
-              </motion.button>
-          </motion.div>
-        )}
+              {/* Gradient overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
+            </>
+          )}
+        </div>
+      )}
 
+      {/* Fallback background if no image */}
+      {!recipeImage && (
+        <div className="absolute inset-0 z-0 bg-black/20" />
+      )}
+
+      {/* Content Container */}
+      <div className="relative z-10">
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white drop-shadow-lg">
+            {query.toUpperCase()}
+          </h2>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              setCurrentRecipe({
+                id: `recipe-${Date.now()}`,
+                title: query,
+                description: recipeDetails.description,
+                image: recipeImage,
+                cookTime: recipeDetails.cookTime,
+                ingredients: recipeDetails.ingredients,
+                steps: steps.map(step => step.text),
+                sourceUrl: window.location.href
+              });
+              setShowShareModal(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg shadow-lg hover:shadow-green-500/20 transition-all"
+          >
+            <MdShare /> Share to Community
+          </motion.button>
+        </div>
+
+        <CookModeView
+          steps={steps}
+          description={recipeDetails.description}
+          ingredients={recipeDetails.ingredients}
+          cookTime={recipeDetails.cookTime}
+        />
+      </div>
+    </motion.div>
+
+    <motion.button
+      onClick={() => setSteps(null)}
+      className="flex items-center gap-3 px-5 py-2 rounded-full font-semibold text-green-400 text-sm md:text-base shadow-lg backdrop-blur-sm bg-green-900/20 border border-green-400/30 transition-all duration-300 focus:outline-none"
+      initial={{ x: -50, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      whileHover={{
+        scale: 1.05,
+        backgroundColor: 'rgba(16,185,129,0.2)',
+        color: '#10B981',
+        boxShadow: '0 8px 20px rgba(16,185,129,0.4)',
+      }}
+      whileTap={{ scale: 0.97, boxShadow: '0 4px 10px rgba(16,185,129,0.3)' }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    >
+      <span className="text-lg md:text-xl animate-pulse">←</span>
+      Back to search
+    </motion.button>
+  </motion.div>
+)}
         {/* Share Recipe Modal */}
         <AnimatePresence>
           {showShareModal && currentRecipe && (
