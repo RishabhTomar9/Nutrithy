@@ -67,14 +67,66 @@ module.exports = (io) => {
       try {
         const errors = validateRoomId(roomID);
         if (errors.length > 0) {
-          return cb({ error: 'Invalid room ID', details: errors });
+          if (typeof cb === 'function') {
+            return cb({ error: 'Invalid room ID', details: errors });
+          } else {
+            socket.emit('room-exists', { exists: false, error: 'Invalid room ID' });
+            return;
+          }
         }
         
         const room = rooms[roomID];
-        cb(!!room);
+        if (typeof cb === 'function') {
+          cb(!!room);
+        } else {
+          socket.emit('room-exists', { exists: !!room });
+        }
       } catch (error) {
         logger.error('Check room error', error, { socketId: socket.id });
-        cb({ error: 'Check room failed' });
+        if (typeof cb === 'function') {
+          cb({ error: 'Check room failed' });
+        } else {
+          socket.emit('room-exists', { exists: false, error: 'Check room failed' });
+        }
+      }
+    });
+    
+    // Create a new room
+    socket.on("create-room", ({ roomID, user }) => {
+      try {
+        const errors = validateRoomId(roomID);
+        if (errors.length > 0) {
+          socket.emit('error', { message: 'Invalid room ID', details: errors });
+          return;
+        }
+        
+        if (!user || !user.displayName) {
+          socket.emit('error', { message: 'User information is required' });
+          return;
+        }
+        
+        // Create room if it doesn't exist
+        if (!rooms[roomID]) {
+          rooms[roomID] = {
+            host: socket.id,
+            users: { [socket.id]: user },
+            isAvailable: true,
+            inCall: false,
+            createdAt: new Date()
+          };
+          
+          // Join the socket to the room
+          socket.join(roomID);
+          socketToUser[socket.id] = user;
+          
+          logger.logRoomEvent(roomID, 'room_created', { user: user.displayName });
+          socket.emit('room-created', { roomID });
+        } else {
+          socket.emit('error', { message: 'Room already exists' });
+        }
+      } catch (error) {
+        logger.error('Create room error', error, { socketId: socket.id, roomID });
+        socket.emit('error', { message: 'Failed to create room' });
       }
     });
 
@@ -482,13 +534,26 @@ module.exports = (io) => {
         io.to(userToSignal).emit("user-joined", {
           signal,
           callerID,
-          user: socketToUser[callerID],
+          timestamp: new Date()
+        });
+        
+        // Acknowledge signal receipt to sender
+        socket.emit("signal-sent", { 
+          to: userToSignal, 
+          success: true,
           timestamp: new Date()
         });
         
         logger.logWebRTCSignal(callerID, userToSignal, 'offer');
       } catch (error) {
         logger.error('Sending signal error', error, { socketId: socket.id });
+        // Notify sender of failure
+        socket.emit("signal-sent", { 
+          to: userToSignal, 
+          success: false,
+          error: error.message,
+          timestamp: new Date()
+        });
       }
     });
 
@@ -500,9 +565,23 @@ module.exports = (io) => {
           timestamp: new Date()
         });
         
+        // Acknowledge signal receipt to sender
+        socket.emit("signal-returned", { 
+          to: callerID, 
+          success: true,
+          timestamp: new Date()
+        });
+        
         logger.logWebRTCSignal(socket.id, callerID, 'answer');
       } catch (error) {
         logger.error('Returning signal error', error, { socketId: socket.id });
+        // Notify sender of failure
+        socket.emit("signal-returned", { 
+          to: callerID, 
+          success: false,
+          error: error.message,
+          timestamp: new Date()
+        });
       }
     });
 
@@ -514,9 +593,44 @@ module.exports = (io) => {
           timestamp: new Date()
         });
         
+        // Acknowledge ICE candidate receipt
+        socket.emit("ice-candidate-sent", { 
+          to, 
+          success: true,
+          timestamp: new Date()
+        });
+        
         logger.logWebRTCSignal(socket.id, to, 'ice-candidate');
       } catch (error) {
         logger.error('ICE candidate error', error, { socketId: socket.id });
+        // Notify sender of failure
+        socket.emit("ice-candidate-sent", { 
+          to, 
+          success: false,
+          error: error.message,
+          timestamp: new Date()
+        });
+      }
+    });
+    
+    // Add enhanced ICE server configuration
+    socket.on("request-ice-servers", () => {
+      try {
+        socket.emit("ice-servers", {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' },
+            // Add more STUN servers for better connectivity
+            { urls: 'stun:stun.ekiga.net' },
+            { urls: 'stun:stun.ideasip.com' },
+            { urls: 'stun:stun.schlund.de' }
+          ]
+        });
+      } catch (error) {
+        logger.error('ICE servers request error', error, { socketId: socket.id });
       }
     });
 
@@ -700,6 +814,10 @@ module.exports = (io) => {
         if (userPhone) {
           delete phoneToRoom[userPhone];
           delete socketToPhone[socket.id];
+          // Also clean up phoneToSocket mapping for compatibility
+          if (typeof phoneToSocket !== 'undefined') {
+            delete phoneToSocket[userPhone];
+          }
         }
         delete socketToUser[socket.id];
         
@@ -711,6 +829,133 @@ module.exports = (io) => {
 
     socket.on("leave-room", () => handleDisconnect('user_left'));
     socket.on("disconnect", (reason) => handleDisconnect(reason));
+    
+    // Request to join a room
+    socket.on("request-to-join", ({ roomID, user }) => {
+      try {
+        const errors = validateRoomId(roomID);
+        if (errors.length > 0) {
+          return socket.emit("error", { message: 'Invalid room ID', details: errors });
+        }
+        
+        if (!rooms[roomID]) {
+          socket.emit("error", { message: "Room not found" });
+          return;
+        }
+        
+        if (!user || !user.displayName) {
+          socket.emit("error", { message: "User information is required" });
+          return;
+        }
+        
+        // Generate a unique request ID
+        const requestId = generateUniqueId();
+        
+        // Notify host of join request
+        socket.to(rooms[roomID].host).emit("new-join-request", { 
+          requestId,
+          from: socket.id, 
+          user,
+          socketId: socket.id
+        });
+        
+        logger.logRoomEvent(roomID, 'join_request', { user: user.displayName, requestId });
+        logger.info('Join request sent', { roomID, requestId, user: user.displayName });
+      } catch (error) {
+        logger.error('Join request error', error, { socketId: socket.id, roomID });
+        socket.emit('error', { message: 'Failed to process join request' });
+      }
+    });
+    
+    // Accept join request
+    socket.on("accept-request", ({ roomID, requestId }) => {
+      try {
+        logger.info('Accept request received', { roomID, requestId, socketId: socket.id });
+        
+        if (!rooms[roomID]) {
+          logger.error('Room not found for accept request', { roomID });
+          socket.emit("error", { message: "Room not found" });
+          return;
+        }
+        
+        // Check if user is host
+        if (rooms[roomID].host !== socket.id) {
+          logger.error('Non-host tried to accept request', { roomID, hostId: rooms[roomID].host, attempterId: socket.id });
+          socket.emit("error", { message: "Only host can accept requests" });
+          return;
+        }
+        
+        // Add user to room
+        const requesterSocket = io.sockets.sockets.get(requestId);
+        if (requesterSocket) {
+          requesterSocket.join(roomID);
+          
+          // Send more detailed acceptance with room information
+          requesterSocket.emit("request-accepted", {
+            roomID,
+            hostId: socket.id,
+            participants: Object.keys(rooms[roomID].users).map(id => ({
+              id,
+              user: rooms[roomID].users[id] || { displayName: "Unknown User" }
+            }))
+          });
+          
+          // Notify all participants
+          socket.to(roomID).emit("user-joined", { 
+            callerID: requestId, 
+            user: socketToUser[requestId] || { displayName: "Guest" }
+          });
+          
+          // Notify the new participant about existing participants
+          Object.keys(rooms[roomID].users).forEach(userId => {
+            if (userId !== requestId && userId !== socket.id) {
+              requesterSocket.emit("user-joined", {
+                callerID: userId,
+                user: rooms[roomID].users[userId] || { displayName: "Unknown User" }
+              });
+            }
+          });
+          
+          // Add user to room's user list
+          if (socketToUser[requestId]) {
+            rooms[roomID].users[requestId] = socketToUser[requestId];
+          }
+          
+          logger.logRoomEvent(roomID, 'request_accepted', { requestId });
+          logger.info('Join request accepted successfully', { roomID, requestId });
+        } else {
+          logger.error('Requester socket not found', { requestId });
+          socket.emit("error", { message: "Requester not found" });
+        }
+      } catch (error) {
+        logger.error('Accept request error', error, { socketId: socket.id, roomID });
+        socket.emit('error', { message: 'Failed to accept request' });
+      }
+    });
+    
+    // Decline join request
+    socket.on("decline-request", ({ roomID, requestId }) => {
+      try {
+        if (!rooms[roomID]) {
+          socket.emit("error", { message: "Room not found" });
+          return;
+        }
+        
+        // Check if user is host
+        if (rooms[roomID].host !== socket.id) {
+          socket.emit("error", { message: "Only host can decline requests" });
+          return;
+        }
+        
+        // Notify requester
+        io.to(requestId).emit("request-declined");
+        
+        logger.logRoomEvent(roomID, 'request_declined', { requestId });
+      } catch (error) {
+        logger.error('Decline request error', error, { socketId: socket.id, roomID });
+        socket.emit('error', { message: 'Failed to decline request' });
+      }
+    });
     
     // Error handling
     socket.on("error", (error) => {
