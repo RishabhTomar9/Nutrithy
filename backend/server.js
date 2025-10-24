@@ -21,7 +21,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Middleware
-const FRONTEND_ORIGIN = process.env.ALLOWED_ORIGINS || "https://cooksync-ff36a.firebaseapp.com/" ;
+const FRONTEND_ORIGIN = process.env.ALLOWED_ORIGINS || "https://cooksync-ff36a.firebaseapp.com" ;
 app.use(
   cors({
     origin: FRONTEND_ORIGIN,
