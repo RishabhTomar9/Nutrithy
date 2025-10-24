@@ -178,12 +178,12 @@ export default function CommunityFeed() {
 
   return (
     <>
-      <div className="min-h-screen relative z-10 pt-20">
+      <div className="min-h-screen relative z-10 pt-28 px-8">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="max-w-6xl mx-auto mb-10 text-center bg-gradient-to-b from-gray-900/50 to-transparent p-8 rounded-2xl backdrop-blur-lg border border-white/10"
+          className="mx-auto mb-10 text-center bg-gradient-to-b from-gray-900/50 to-transparent p-8 rounded-2xl backdrop-blur-lg border border-white/10"
         >
           <motion.h1 
             className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 mb-4"

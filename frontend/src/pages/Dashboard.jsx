@@ -114,7 +114,7 @@ export default function Dashboard() {
     <>
       <motion.div 
         ref={pageRef}
-        className="px-8 pt-28 w-full mx-auto flex flex-col gap-8 max-w-7xl"
+        className="px-8 pt-28 w-full mx-auto flex flex-col gap-8"
       >
         <GreetingHeader user={user} />
 

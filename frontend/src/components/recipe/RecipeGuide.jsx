@@ -766,7 +766,7 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
       {/* Fallback background if no image */}
       {!recipeImage && (
-        <div className="absolute inset-0 z-0 bg-black/20" />
+        <div className="absolute inset-0 z-0 bg-black/10" />
       )}
 
       {/* Content Container */}
