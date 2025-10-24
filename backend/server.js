@@ -27,6 +27,8 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       "http://localhost:5173",
       "https://cooksync-ff36a.firebaseapp.com",
       "https://cooksync.web.app",
+      "https://nutrithy.web.app",
+      "https://nutrithy.firebaseapp.com",
     ];
     
 app.use(
