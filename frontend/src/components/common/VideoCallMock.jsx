@@ -174,7 +174,7 @@ export default function VideoCallApp() {
       }
       
       // Connect to socket server and create room
-      const socket = io(import.meta.env.VITE_SOCKET_ENDPOINT || 'http://localhost:5000', {
+      const socket = io(import.meta.env.VITE_SOCKET_SERVER || 'http://localhost:5000', {
         transports: ['websocket', 'polling'], // Try both WebSocket and polling
         reconnection: true,
         reconnectionAttempts: 10,
