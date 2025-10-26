@@ -1,5 +1,15 @@
 const mongoose = require("mongoose");
 
+const mediaSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  resource_type: { type: String },
+  format: { type: String },
+  width: { type: Number },
+  height: { type: Number },
+  bytes: { type: Number },
+  public_id: { type: String }
+}, { _id: false });
+
 const commentSchema = new mongoose.Schema({
   _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
   uid: { type: String, required: true, index: true },
@@ -12,28 +22,19 @@ const commentSchema = new mongoose.Schema({
   replies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
 });
 
-const communityPostSchema = new mongoose.Schema({
+// Top-level CommunityPost schema (update/add fields as needed)
+const CommunityPostSchema = new mongoose.Schema({
   uid: { type: String, required: true, index: true },
   author: { type: String, required: true },
   authorImage: { type: String },
   content: { type: String, required: true },
-  image: { type: String },
-  likes: { type: Number, default: 0 },
-  comments: [commentSchema],
-  commentCount: { type: Number, default: 0 },
-  shares: { type: Number, default: 0 },
+  media: { type: [mediaSchema], default: [] }, // array of media objects (max 5 enforced by controller)
   tags: [{ type: String }],
-  recipe: {
-    recipeId: { type: String },
-    title: { type: String },
-    image: { type: String },
-    description: { type: String },
-  },
-  likedBy: [{ type: String }], // Array of user UIDs who liked the post
-  sharedBy: [{ type: String }], // Array of user UIDs who shared the post
-}, { timestamps: true });
+  recipe: { type: mongoose.Schema.Types.Mixed },
+  commentsCount: { type: Number, default: 0 },
+  likes: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
 
-// Create text index for search functionality
-communityPostSchema.index({ content: 'text', author: 'text', tags: 'text' });
-
-module.exports = mongoose.model("CommunityPost", communityPostSchema);
+module.exports = mongoose.model('CommunityPost', CommunityPostSchema);

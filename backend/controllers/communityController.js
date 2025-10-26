@@ -1,6 +1,15 @@
 const CommunityPost = require('../models/CommunityPost');
 const User = require('../models/User');
 const mongoose = require('mongoose');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
+
+// configure Cloudinary using env vars (set in backend .env)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Get all community posts with pagination
 exports.getAllPosts = async (req, res) => {
@@ -74,39 +83,75 @@ exports.getPostById = async (req, res) => {
   }
 };
 
-// Create a new post
+// Add a post (with optional images/videos uploaded to Cloudinary)
 exports.createPost = async (req, res) => {
   try {
-    const { content, image, tags, recipe } = req.body;
-    const { uid } = req.user;
-    
-    // Get user info
-    const user = await User.findOne({ uid }).lean();
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    // use authenticated uid when verifyFirebaseToken sets req.user
+    const uid = (req.user && req.user.uid) || req.body.uid;
+    const { author, content, authorImage, tags, recipe } = req.body;
+    if (!uid || !author || !content) {
+      return res.status(400).json({ message: 'uid, author and content are required' });
     }
-    
+
+    const files = req.files || [];
+    if (files.length > 5) {
+      return res.status(400).json({ message: 'You can upload up to 5 media files.' });
+    }
+
+    const media = [];
+    for (const file of files) {
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { resource_type: 'auto', folder: 'community' },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        streamifier.createReadStream(file.buffer).pipe(stream);
+      });
+
+      media.push({
+        url: uploadResult.secure_url,
+        resource_type: uploadResult.resource_type,
+        format: uploadResult.format,
+        width: uploadResult.width,
+        height: uploadResult.height,
+        bytes: uploadResult.bytes,
+        public_id: uploadResult.public_id,
+      });
+    }
+
+    // Parse tags if sent as JSON string
+    let parsedTags = [];
+    if (tags) {
+      if (typeof tags === 'string') {
+        try {
+          parsedTags = JSON.parse(tags);
+        } catch {
+          parsedTags = tags.split(',').map(t => t.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(tags)) {
+        parsedTags = tags;
+      }
+    }
+
     const newPost = new CommunityPost({
       uid,
-      author: user.displayName,
-      authorImage: user.photoURL || null,
+      author,
+      authorImage: authorImage || null,
       content,
-      image,
-      tags: tags || [],
-      recipe: recipe || null,
-      likedBy: [],
-      sharedBy: [],
-      likes: 0,
-      shares: 0
+      media,
+      tags: parsedTags,
+      recipe: recipe ? (typeof recipe === 'string' ? JSON.parse(recipe) : recipe) : undefined,
     });
-    
+
     await newPost.save();
-    
+
     return res.status(201).json(newPost);
   } catch (error) {
-    console.error('Error creating post:', error);
-    return res.status(500).json({ error: 'Failed to create post' });
+    console.error('createPost error:', error);
+    return res.status(500).json({ message: 'Failed to create post', error: error.message });
   }
 };
 

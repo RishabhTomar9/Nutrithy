@@ -2,6 +2,9 @@ import axiosInstance from '../utils/axiosInstance';
 import axios from 'axios';
 
 const API_URL = '/api/community';
+// prefer VITE_API_URL for API host, fall back to SOCKET_SERVER if present
+const apiBaseRaw = import.meta.env.VITE_API_URL || import.meta.env.VITE_SOCKET_SERVER || '';
+const apiBase = apiBaseRaw.replace(/\/+$/, ''); // strip trailing slash
 
 export const fetchPosts = async (page = 1, limit = 10, filter = 'all') => {
   try {
@@ -23,13 +26,50 @@ export const fetchPostById = async (id) => {
   }
 };
 
-export const createPost = async (postData) => {
+export const createPost = async (postData, onUploadProgress) => {
   try {
-    const response = await axiosInstance.post(API_URL, postData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating post:', error);
-    throw error;
+    // postData: { uid?, author, content, authorImage?, tags?, recipe?, media? (File or File[]/FileList) }
+    const form = new FormData();
+    if (postData.uid) form.append('uid', postData.uid);
+    if (postData.author) form.append('author', postData.author);
+    if (postData.content) form.append('content', postData.content || '');
+    if (postData.authorImage) form.append('authorImage', postData.authorImage);
+    if (postData.tags) form.append('tags', Array.isArray(postData.tags) ? JSON.stringify(postData.tags) : postData.tags);
+    if (postData.recipe) form.append('recipe', typeof postData.recipe === 'string' ? postData.recipe : JSON.stringify(postData.recipe));
+
+    if (postData.media) {
+      const files = Array.isArray(postData.media)
+        ? postData.media
+        : (postData.media instanceof FileList ? Array.from(postData.media) : [postData.media]);
+      if (files.length > 5) throw new Error('You can upload up to 5 files.');
+      for (const file of files) {
+        form.append('media', file);
+      }
+    }
+
+    const url = apiBase ? `${apiBase}${API_URL}` : API_URL;
+
+    // Use axiosInstance so auth headers / baseURL / interceptors are applied
+    const client = axiosInstance || axios;
+
+    const res = await client.post(url, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      withCredentials: true,
+      timeout: 120000,
+      onUploadProgress: (progressEvent) => {
+        if (typeof onUploadProgress === 'function') {
+          const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+          onUploadProgress(percent);
+        }
+      }
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error('Error creating post:', err);
+    const status = err?.response?.status;
+    const msg = err?.response?.data?.message || err?.message || 'Unknown error';
+    throw new Error(`Create post failed: ${msg} (status: ${status || 'no-status'})`);
   }
 };
 
@@ -62,9 +102,6 @@ export const likePost = async (id) => {
     throw error;
   }
 };
-
-const apiBaseRaw = import.meta.env.VITE_SOCKET_SERVER || '';
-const apiBase = apiBaseRaw.replace(/\/+$/, ''); // strip trailing slash
 
 export async function addComment(postId, content, parentId = null) {
   if (!postId) throw new Error('postId is required');

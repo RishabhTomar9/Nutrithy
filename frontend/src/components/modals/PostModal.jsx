@@ -1,82 +1,59 @@
-import { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import { createPost } from '../../services/communityService';
+import { useAuth } from '../../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaImage, FaUtensils, FaTags } from 'react-icons/fa';
-import { useAuth } from '../../hooks/useAuth';
 
-export default function PostModal({ isOpen, onClose, onSubmit }) {
+export default function PostModal({ isOpen, onClose, onPostCreated }) {
+  const { user } = useAuth() || {};
   const [content, setContent] = useState('');
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [tags, setTags] = useState([]);
-  const [currentTag, setCurrentTag] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [files, setFiles] = useState([]); // File[]
+  const [previews, setPreviews] = useState([]); // data URLs
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
-  const fileInputRef = useRef(null);
-  const { user } = useAuth();
+  const fileInputRef = useRef();
 
-  // Handle image selection
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setError('Image size must be less than 5MB');
-        return;
-      }
-      
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Handle tag input
-  const handleTagKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTag();
-    }
-  };
-
-  const addTag = () => {
-    const trimmedTag = currentTag.trim().toLowerCase();
-    if (trimmedTag && !tags.includes(trimmedTag) && tags.length < 5) {
-      setTags([...tags, trimmedTag]);
-      setCurrentTag('');
-    }
-  };
-
-  const removeTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  // Handle file selection and preview
+  const handleFiles = (fileList) => {
+    const arr = Array.from(fileList).slice(0, 5); // limit to 5 files
+    setFiles(arr);
+    const p = arr.map((f) => {
+      return URL.createObjectURL(f);
+    });
+    setPreviews(p);
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!content.trim()) {
-      setError('Please add some content to your post');
-      return;
-    }
-
-    setIsSubmitting(true);
+    if (e && e.preventDefault) e.preventDefault();
     setError(null);
+    if (!user) return setError('You must be signed in');
+    if (!content.trim() && files.length === 0) return setError('Add content or media');
 
+    setUploading(true);
+    setProgress(0);
     try {
-      // Create form data for image upload
-      const formData = new FormData();
-      formData.append('content', content);
-      if (image) formData.append('image', image);
-      if (tags.length > 0) formData.append('tags', JSON.stringify(tags));
+      const postData = {
+        uid: user.uid || user.id,
+        author: user.displayName || user.name || 'Unknown',
+        content: content.trim(),
+        media: files
+      };
 
-      await onSubmit(formData);
-      onClose();
+      const created = await createPost(postData, (pct) => setProgress(pct));
+      setUploading(false);
+      setProgress(100);
+      setContent('');
+      setFiles([]);
+      setPreviews([]);
+      if (typeof onPostCreated === 'function') onPostCreated(created);
+      if (typeof onClose === 'function') onClose();
     } catch (err) {
-      setError('Failed to create post. Please try again.');
-      console.error('Error creating post:', err);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Post create error', err);
+      setError(err.message || 'Failed to create post');
+      setUploading(false);
+      setProgress(0);
     }
   };
 
@@ -156,66 +133,30 @@ export default function PostModal({ isOpen, onClose, onSubmit }) {
                   {content.length}/500
                 </div>
                 
-                {/* Image Preview */}
-                {imagePreview && (
-                  <div className="mt-4 relative">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
-                      className="w-full h-auto max-h-60 object-contain rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImage(null);
-                        setImagePreview(null);
-                      }}
-                      className="absolute top-2 right-2 bg-gray-800/80 text-white p-1 rounded-full hover:bg-red-500/80 transition-colors"
-                    >
-                      <FaTimes />
-                    </button>
-                  </div>
-                )}
-                
-                {/* Tags Input */}
-                <div className="mt-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaTags className="text-gray-400" />
-                    <span className="text-sm text-gray-300">Tags</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {tags.map((tag, index) => (
-                      <div 
-                        key={index} 
-                        className="bg-gray-700/70 text-green-400 px-2 py-1 rounded-full text-sm flex items-center gap-1"
-                      >
-                        #{tag}
-                        <button 
+                {/* Image/Video Preview */}
+                {previews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {previews.map((src, idx) => (
+                      <div key={idx} className="relative">
+                        <img 
+                          src={src} 
+                          alt={`Preview ${idx + 1}`} 
+                          className="w-full h-auto max-h-60 object-contain rounded-lg"
+                        />
+                        <button
                           type="button"
-                          onClick={() => removeTag(tag)}
-                          className="text-gray-400 hover:text-red-400"
+                          onClick={() => {
+                            setFiles(files.filter((_, i) => i !== idx));
+                            setPreviews(previews.filter((_, i) => i !== idx));
+                          }}
+                          className="absolute top-2 right-2 bg-gray-800/80 text-white p-1 rounded-full hover:bg-red-500/80 transition-colors"
                         >
-                          <FaTimes size={12} />
+                          <FaTimes />
                         </button>
                       </div>
                     ))}
                   </div>
-                  <div className="flex">
-                    <input
-                      type="text"
-                      value={currentTag}
-                      onChange={(e) => setCurrentTag(e.target.value)}
-                      onKeyDown={handleTagKeyDown}
-                      onBlur={addTag}
-                      placeholder="Add up to 5 tags (press Enter)"
-                      className="flex-1 bg-gray-700/50 text-white rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50"
-                      disabled={tags.length >= 5}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {tags.length}/5 tags
-                  </p>
-                </div>
+                )}
                 
                 {/* Error Message */}
                 {error && (
@@ -234,26 +175,43 @@ export default function PostModal({ isOpen, onClose, onSubmit }) {
                     className="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700/70 text-gray-300 px-3 py-2 rounded-lg transition-colors"
                   >
                     <FaImage />
-                    <span>Add Image</span>
+                    <span>Add Image/Video</span>
                   </button>
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={(e) => handleFiles(e.target.files)}
                     className="hidden"
+                    disabled={uploading}
                   />
                 </div>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !content.trim()}
-                  className={`px-4 py-2 rounded-lg font-medium ${isSubmitting || !content.trim() 
+                  disabled={uploading || !content.trim()}
+                  className={`px-4 py-2 rounded-lg font-medium ${uploading || !content.trim() 
                     ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
                     : 'bg-gradient-to-r from-green-400 to-blue-500 text-white hover:shadow-lg hover:shadow-green-500/20 transition-all'}`}
                 >
-                  {isSubmitting ? 'Posting...' : 'Post'}
+                  {uploading ? 'Posting...' : 'Post'}
                 </button>
               </div>
+
+              {/* Upload Progress */}
+              {uploading && (
+                <div className="p-4">
+                  <div className="h-2 bg-gray-700 rounded-full">
+                    <div 
+                      className="h-full bg-green-500 rounded-full"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-400 text-right mt-1">
+                    {progress}%
+                  </div>
+                </div>
+              )}
             </form>
           </motion.div>
         </motion.div>
