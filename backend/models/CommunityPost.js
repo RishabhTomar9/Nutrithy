@@ -1,11 +1,15 @@
 const mongoose = require("mongoose");
 
 const commentSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
   uid: { type: String, required: true, index: true },
   author: { type: String, required: true },
   authorImage: { type: String },
   content: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
+  likes: { type: Number, default: 0 },
+  likedBy: [{ type: String }],
+  replies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
 });
 
 const communityPostSchema = new mongoose.Schema({

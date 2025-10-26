@@ -1,5 +1,6 @@
 const CommunityPost = require('../models/CommunityPost');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 // Get all community posts with pagination
 exports.getAllPosts = async (req, res) => {
@@ -213,37 +214,67 @@ exports.addComment = async (req, res) => {
     const { content, parentId } = req.body;
     const { uid } = req.user;
     
+    // Basic validation
     if (!content || content.trim() === '') {
       return res.status(400).json({ error: 'Comment content is required' });
     }
     
-    // Get user info
-    const user = await User.findOne({ uid }).lean();
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
+    // Find the post first
     const post = await CommunityPost.findById(id);
-    
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
     
-    const newComment = {
+    // Get user info - simplified approach
+    let author = uid.substring(0, 8);
+    let authorImage = null;
+    
+    try {
+      const user = await User.findOne({ uid }).lean();
+      if (user) {
+        author = user.displayName || user.name || author;
+        authorImage = user.photoURL || user.photo || null;
+      }
+    } catch (userError) {
+      console.error('Error fetching user, using fallback:', userError);
+      // Continue with fallback values
+    }
+    
+    // Create a simple comment object
+    const comment = {
+      _id: new mongoose.Types.ObjectId(),
       uid,
-      author: user.name,
-      authorImage: user.photo || null,
-      content,
-      createdAt: new Date()
+      author,
+      authorImage,
+      content: content.trim(),
+      createdAt: new Date(),
+      likes: 0,
+      likedBy: []
     };
     
-    post.comments.push(newComment);
+    // Add comment to post
+    post.comments.push(comment);
     post.commentCount = post.comments.length;
     
-    await post.save();
+    // Save with error handling
+    try {
+      await post.save();
+    } catch (saveError) {
+      console.error('Error saving post with new comment:', saveError);
+      return res.status(500).json({ error: 'Failed to save comment to database' });
+    }
     
-    return res.status(201).json(newComment);
+    // Return a plain object with string ID
+    return res.status(201).json({
+      _id: comment._id.toString(),
+      uid: comment.uid,
+      author: comment.author,
+      authorImage: comment.authorImage,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      likes: 0,
+      likedBy: []
+    });
   } catch (error) {
     console.error('Error adding comment:', error);
     return res.status(500).json({ error: 'Failed to add comment' });

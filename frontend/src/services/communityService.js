@@ -1,4 +1,5 @@
 import axiosInstance from '../utils/axiosInstance';
+import axios from 'axios';
 
 const API_URL = '/api/community';
 
@@ -62,12 +63,32 @@ export const likePost = async (id) => {
   }
 };
 
-export const addComment = async (id, content, parentId = null) => {
+const apiBaseRaw = import.meta.env.VITE_SOCKET_SERVER || '';
+const apiBase = apiBaseRaw.replace(/\/+$/, ''); // strip trailing slash
+
+export async function addComment(postId, content, parentId = null) {
+  if (!postId) throw new Error('postId is required');
+  if (!content || !content.trim()) throw new Error('content is required');
+
+  const payload = {
+    content: content.trim(),
+    ...(parentId ? { parentId } : {})
+  };
+
+  // Backend route: POST /api/community/:id/comment
   try {
-    const response = await axiosInstance.post(`${API_URL}/${id}/comment`, { content, parentId });
-    return response.data;
-  } catch (error) {
-    console.error('Error adding comment:', error);
+    // use axiosInstance so authentication, baseURL and interceptors are applied
+    const res = await axiosInstance.post(`${API_URL}/${postId}/comment`, payload, {
+      timeout: 10000
+    });
+    return res.data;
+  } catch (err) {
+    console.error(`addComment failed for post ${postId}:`, err?.response?.status, err?.response?.data || err.message);
+    const status = err?.response?.status;
+    const resp = err?.response?.data;
+    const msg = resp?.error || resp?.message || err.message || 'Unknown error';
+    const error = new Error(`Add comment failed: ${msg} (status: ${status || 'no-status'})`);
+    error._raw = err;
     throw error;
   }
 };
