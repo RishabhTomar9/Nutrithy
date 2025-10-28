@@ -20,4 +20,11 @@ router.delete('/:id', verifyFirebaseToken, communityController.deletePost);
 // Interaction routes
 router.post('/:id/like', verifyFirebaseToken, communityController.likePost);
 
+// Comment routes
+router.post('/:id/comment', verifyFirebaseToken, communityController.addComment);
+router.get('/:id/comments', communityController.getPostComments);
+router.delete('/comments/:commentId', verifyFirebaseToken, communityController.deleteComment);
+router.post('/comments/:commentId/like', verifyFirebaseToken, communityController.likeComment);
+router.get('/comments/:commentId/replies', communityController.getCommentReplies);
+
 module.exports = router;

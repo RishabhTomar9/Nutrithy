@@ -132,6 +132,30 @@ body::-webkit-scrollbar-thumb:hover {
 .mobile-nav-scroll::-webkit-scrollbar {
   display: none;
 }
+
+/* Custom scrollbar for comment section */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 197, 94, 0.5) rgba(31, 41, 55, 0.3);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: rgba(31, 41, 55, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(34, 197, 94, 0.5);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(34, 197, 94, 0.7);
+}
 @layer utilities {
   .animate-fadeSlideIn {
     animation: fadeSlideIn 0.6s forwards;

@@ -317,7 +317,10 @@ export default function CommunityFeed() {
               <PostCard 
                 key={post._id} 
                 post={post} 
+                currentUser={user}
                 userInteractions={userInteractions[post._id] || {}} 
+                onLike={() => handleInteraction(post._id, 'like')}
+                onShare={() => handleInteraction(post._id, 'share')}
                 onInteraction={handleInteraction} 
                 variants={postVariants}
               />
