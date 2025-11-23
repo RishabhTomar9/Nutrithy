@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import CookModeView from './CookModeView'
 import TagAnimator from '../common/TagAnimator'
 import ThreadBackground from '../common/ThreadBackground'
@@ -9,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { MdFavorite, MdFavoriteBorder, MdAccessTime, MdShare } from 'react-icons/md'
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY)
+// Server-side proxy will handle Generative AI calls; do not initialize client SDK in browser
 
 export default function RecipeGuide({ scrollRef }) {
   const [query, setQuery] = useState('')
@@ -146,13 +145,7 @@ export default function RecipeGuide({ scrollRef }) {
         // Non-fatal if user not logged in - continue with recipe generation
       }
 
-      // ✅ Validate API key presence
-      if (!import.meta.env.VITE_GEMINI_API_KEY) {
-        throw new Error('Gemini API key is missing')
-      }
-
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
+      // Use server proxy for AI generation
       const prompt = `You are a helpful recipe assistant. Provide detailed cooking instructions for the recipe: "${query}".
 1. Begin with a detailed description of the dish max of 50 words.
 2. List all required ingredients, with quantities.
@@ -161,11 +154,14 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 5. Mention any tips, substitutions, or variations if relevant.
 6. Use clear, simple language for beginners.`
 
-      const result = await model.generateContent(prompt)
-      const response = await result.response
-      const text = response.text()
+      // Call backend proxy
+      const serverResp = await axiosInstance.post('/api/ai/generate', { prompt, model: 'gemini-2.5-flash' })
+      if (!serverResp.data || !serverResp.data.success) {
+        throw new Error('AI proxy error: ' + (serverResp.data?.error || JSON.stringify(serverResp.data)))
+      }
+      const text = serverResp.data.text || (typeof serverResp.data.raw === 'string' ? serverResp.data.raw : JSON.stringify(serverResp.data.raw || ''))
 
-      if (!text || text.length < 10) throw new Error('Empty or invalid response from Gemini.')
+      if (!text || text.length < 10) throw new Error('Empty or invalid response from AI proxy.')
 
       // ✅ Parse description
       const descMatch = text.match(/^\s*([^\n]+)\n/i)

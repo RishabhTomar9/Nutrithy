@@ -15,6 +15,7 @@ const dietPlanRoutes = require("./routes/dietPlanRoutes");
 const communityRoutes = require("./routes/communityRoutes");
 const nutritionRoutes = require("./routes/nutritionRoutes");
 const callRoutes = require("./routes/callRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 const socketHandler = require("./socket/socketHandler");
 
 const app = express();
@@ -64,6 +65,9 @@ app.use("/api/diet-plans", dietPlanRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api/nutrition", nutritionRoutes);
 app.use("/api/calls", callRoutes);
+
+// AI proxy route
+app.use('/api/ai', aiRoutes);
 
 // ✅ Users routes
 app.use("/api/users", userRoutes); // existing user operations (login, profile, etc.)

@@ -4,10 +4,8 @@ import {
   ChefHat, Clock, Users, Flame, Heart, Star, X, 
   RefreshCw, Filter, Search, BookOpen, Plus, Minus 
 } from 'lucide-react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
+import axiosInstance from '../../utils/axiosInstance';
 const MODEL_NAME = "gemini-1.5-pro";
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 
 const SmartRecipeSuggestions = ({ dietPlan, formData, isVisible, onClose }) => {
   const [recipes, setRecipes] = useState([]);
@@ -31,19 +29,7 @@ const SmartRecipeSuggestions = ({ dietPlan, formData, isVisible, onClose }) => {
   const generateRecipes = async () => {
     setLoading(true);
     
-    try {
-      if (!API_KEY) {
-        // Use mock recipes if no API key
-        setTimeout(() => {
-          setRecipes(getMockRecipes());
-          setLoading(false);
-        }, 1500);
-        return;
-      }
-
-      const genAI = new GoogleGenerativeAI(API_KEY);
-      const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-
+      try {
       const prompt = `
 Generate 8 smart recipe suggestions based on this diet plan:
 - Calories: ${dietPlan.calories}
@@ -77,15 +63,33 @@ Return JSON array with recipes containing:
 Focus on recipes that align with the dietary goals and restrictions.
 `;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = await response.text();
-      
+      // Call server proxy for generation
       try {
-        const parsed = JSON.parse(text);
-        setRecipes(Array.isArray(parsed) ? parsed : [parsed]);
+        const serverResp = await axiosInstance.post('/api/ai/generate', { prompt, model: MODEL_NAME });
+        if (serverResp.data && serverResp.data.success) {
+          // If server provided a raw object (fallback or otherwise), use it directly
+          if (serverResp.data.fallback === true && serverResp.data.raw && typeof serverResp.data.raw === 'object') {
+            const parsed = serverResp.data.raw;
+            setRecipes(Array.isArray(parsed) ? parsed : [parsed]);
+          } else if (typeof serverResp.data.raw === 'object') {
+            const parsed = serverResp.data.raw;
+            setRecipes(Array.isArray(parsed) ? parsed : [parsed]);
+          } else {
+            const text = serverResp.data.text || (typeof serverResp.data.raw === 'string' ? serverResp.data.raw : JSON.stringify(serverResp.data.raw || ''));
+            try {
+              const parsed = JSON.parse(text);
+              setRecipes(Array.isArray(parsed) ? parsed : [parsed]);
+            } catch (e) {
+              console.error('Failed to parse recipes from server response, falling back to mock:', e, text);
+              setRecipes(getMockRecipes());
+            }
+          }
+        } else {
+          console.error('AI proxy error:', serverResp.data);
+          setRecipes(getMockRecipes());
+        }
       } catch (e) {
-        console.error('Failed to parse recipes:', e);
+        console.error('Server generation error:', e);
         setRecipes(getMockRecipes());
       }
     } catch (error) {

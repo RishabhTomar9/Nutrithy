@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Activity, Target, Clock, Droplet, RefreshCw, Coffee, Utensils, ChevronDown, ChevronUp, Heart, Flame, Zap, Bookmark, Share2, X, ShoppingCart, TrendingUp, ChefHat } from "lucide-react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import axiosInstance from "../../utils/axiosInstance";
@@ -13,8 +12,7 @@ import SmartRecipeSuggestions from "./SmartRecipeSuggestions";
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
-const MODEL_NAME = "gemini-1.5-flash"; // Use Flash model for better rate limits
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+const MODEL_NAME = "gemini-pro"; // Preferred model name to request from server proxy
 
 export default function DietPlanner() {
   const { currentUser } = useAuth();
@@ -59,30 +57,57 @@ export default function DietPlanner() {
 
   // GSAP animations setup
   useEffect(() => {
-    if (dietPlan) {
-      // Animate macros cards when they appear
-      gsap.fromTo(".macro-card", 
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, stagger: 0.1, duration: 0.6, ease: "power2.out" }
-      );
-      
-      // Animate meal sections with scroll trigger
-      gsap.utils.toArray(".meal-section").forEach((section, i) => {
-        gsap.fromTo(section, 
-          { x: i % 2 === 0 ? -50 : 50, opacity: 0 },
-          { 
-            x: 0, 
-            opacity: 1, 
-            duration: 0.8,
-            scrollTrigger: {
-              trigger: section,
-              start: "top 80%",
-              toggleActions: "play none none none"
-            }
-          }
+    if (!dietPlan) return;
+
+    // Guard: only animate when elements exist to avoid GSAP warnings
+    const macroEls = document.querySelectorAll('.macro-card');
+    const mealSections = gsap.utils.toArray('.meal-section');
+    const createdTweens = [];
+
+    try {
+      if (macroEls && macroEls.length > 0) {
+        createdTweens.push(
+          gsap.fromTo('.macro-card',
+            { y: 30, opacity: 0 },
+            { y: 0, opacity: 1, stagger: 0.1, duration: 0.6, ease: 'power2.out' }
+          )
         );
-      });
+      }
+
+      if (mealSections && mealSections.length > 0) {
+        mealSections.forEach((section, i) => {
+          createdTweens.push(
+            gsap.fromTo(section,
+              { x: i % 2 === 0 ? -50 : 50, opacity: 0 },
+              {
+                x: 0,
+                opacity: 1,
+                duration: 0.8,
+                scrollTrigger: {
+                  trigger: section,
+                  start: 'top 80%',
+                  toggleActions: 'play none none none'
+                }
+              }
+            )
+          );
+        });
+      }
+    } catch (e) {
+      console.warn('GSAP animation error:', e);
     }
+
+    // Cleanup on unmount or when dietPlan changes
+    return () => {
+      try {
+        createdTweens.forEach(t => { if (t && t.kill) t.kill(); });
+        if (ScrollTrigger && ScrollTrigger.getAll) {
+          try { ScrollTrigger.getAll().forEach(st => st.kill()); } catch {};
+        }
+      } catch (e) {
+        // ignore cleanup errors
+      }
+    };
   }, [dietPlan]);
 
   // Save plans to localStorage when they change
@@ -179,15 +204,8 @@ export default function DietPlanner() {
     
     const attemptGeneration = async () => {
       try {
-        if (!API_KEY) {
-          throw new Error('AI service is not configured. Please contact support to enable AI diet plan generation.');
-        }
-
-        setGenerationStatus("Connecting to AI nutrition expert...");
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-        
-        setGenerationStatus("Calculating your metabolic requirements...");
+        // Use backend proxy for AI generation to keep API key secret
+        setGenerationStatus("Preparing AI generation request...");
 
         // Calculate BMR and TDEE for more accurate calorie requirements
         const bmr = calculateBMR(parseInt(formData.age), parseFloat(formData.weight), parseFloat(formData.height));
@@ -227,33 +245,72 @@ Return JSON:
 }
         `;
         
-        setGenerationStatus("Generating your personalized diet plan...");
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = await response.text();
-        
-        // Clean up the response text to extract JSON
-        text = text.trim();
-        if (text.includes('```json')) {
-          text = text.split('```json')[1].split('```')[0].trim();
-        } else if (text.includes('```')) {
-          text = text.split('```')[1].split('```')[0].trim();
-        }
-        
-        // Remove any markdown formatting or extra text
-        const jsonStartIndex = text.indexOf('{');
-        const jsonEndIndex = text.lastIndexOf('}') + 1;
-        if (jsonStartIndex !== -1 && jsonEndIndex > jsonStartIndex) {
-          text = text.substring(jsonStartIndex, jsonEndIndex);
+        setGenerationStatus("Generating your personalized diet plan (server-side)...");
+        // Call backend proxy which holds the API key
+
+        let parsed = null;
+        let text = null;
+        let usedLocalPlan = false;
+        let serverResp;
+        try {
+          serverResp = await axiosInstance.post('/api/ai/generate', { prompt, model: MODEL_NAME });
+        } catch (e) {
+          console.error('Server generation request failed:', e);
+          const serverMsg = e.response?.data?.error || e.message || '';
+          // If the server indicates the GENERATIVE_API_KEY is not configured, fall back to a local generator
+          if (typeof serverMsg === 'string' && serverMsg.includes('GENERATIVE_API_KEY')) {
+            console.warn('Falling back to local diet plan generator due to missing server API key');
+            const bmr = calculateBMR(parseInt(formData.age), parseFloat(formData.weight), parseFloat(formData.height));
+            const tdee = calculateTDEE(bmr, formData.activityLevel);
+            const goalCalories = formData.goal === 'lose' ? Math.round(tdee * 0.8) :
+                                formData.goal === 'gain' ? Math.round(tdee * 1.15) :
+                                Math.round(tdee);
+            parsed = generateLocalDietPlan(goalCalories, formData);
+            usedLocalPlan = true;
+          } else {
+            throw new Error('Server request failed: ' + serverMsg);
+          }
         }
 
-        let parsed;
-        try {
-          parsed = JSON.parse(text);
-        } catch (parseError) {
-          console.error('JSON Parse Error:', parseError);
-          console.error('Raw AI Response:', text);
-          throw new Error('Failed to parse AI response as JSON. Please try again.');
+        if (!usedLocalPlan && serverResp) {
+          if (!serverResp.data || !serverResp.data.success) {
+            console.error('AI proxy returned error:', serverResp.data);
+            throw new Error(serverResp.data?.error || 'AI proxy returned an error');
+          }
+
+          // If server returned a fallback object or raw object, use it directly
+          if (serverResp.data.fallback === true && serverResp.data.raw && typeof serverResp.data.raw === 'object') {
+            parsed = serverResp.data.raw;
+          } else if (typeof serverResp.data.raw === 'object') {
+            parsed = serverResp.data.raw;
+          } else {
+            text = serverResp.data.text || (typeof serverResp.data.raw === 'string' ? serverResp.data.raw : JSON.stringify(serverResp.data.raw || ''));
+          }
+        }
+
+        if (!usedLocalPlan && !parsed) {
+          // Clean up the response text to extract JSON
+          text = (text || '').trim();
+          if (text.includes('```json')) {
+            text = text.split('```json')[1].split('```')[0].trim();
+          } else if (text.includes('```')) {
+            text = text.split('```')[1].split('```')[0].trim();
+          }
+
+          // Remove any markdown formatting or extra text
+          const jsonStartIndex = text.indexOf('{');
+          const jsonEndIndex = text.lastIndexOf('}') + 1;
+          if (jsonStartIndex !== -1 && jsonEndIndex > jsonStartIndex) {
+            text = text.substring(jsonStartIndex, jsonEndIndex);
+          }
+
+          try {
+            parsed = JSON.parse(text);
+          } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            console.error('Raw AI Response:', text);
+            throw new Error('Failed to parse AI response as JSON. Please try again.');
+          }
         }
         
         // Validate that all required fields are present
@@ -285,7 +342,13 @@ Return JSON:
         
         setGenerationStatus("Complete! Your AI diet plan is ready.");
         setDietPlan(parsed);
+        // Smoothly reveal results and scroll into view
         setActiveSection("results");
+        setTimeout(() => {
+          if (dietPlanRef.current && dietPlanRef.current.scrollIntoView) {
+            try { dietPlanRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
+          }
+        }, 120);
         
         // Clear status after a short delay
         setTimeout(() => setGenerationStatus(""), 2000);
@@ -524,6 +587,74 @@ Return JSON:
     };
     return bmr * (multipliers[activityLevel] || 1.55);
   };
+
+  // Local fallback generator for when AI proxy is unavailable
+  const generateLocalDietPlan = (calories, form) => {
+    const weight = parseFloat(form.weight) || 70;
+    const prefs = (form.dietaryPreference || 'omnivore').toLowerCase();
+
+    // Macro distribution by goal
+    let proteinPct = 0.25, carbsPct = 0.45, fatsPct = 0.30;
+    if (form.goal === 'lose') { proteinPct = 0.30; carbsPct = 0.35; fatsPct = 0.35; }
+    if (form.goal === 'gain') { proteinPct = 0.25; carbsPct = 0.50; fatsPct = 0.25; }
+
+    const proteinG = Math.round((calories * proteinPct) / 4);
+    const carbsG = Math.round((calories * carbsPct) / 4);
+    const fatsG = Math.round((calories * fatsPct) / 9);
+
+    const hydrationLiters = Math.max(1.5, Math.round((weight * 35) / 1000 * 10) / 10);
+
+    const proteinSources = {
+      omnivore: ['Eggs', 'Greek yogurt', 'Grilled chicken', 'Salmon', 'Tuna'],
+      vegetarian: ['Greek yogurt', 'Cottage cheese', 'Eggs', 'Lentils', 'Chickpeas'],
+      vegan: ['Tofu', 'Tempeh', 'Lentils', 'Chickpeas', 'Peanut butter']
+    };
+
+    const sources = proteinSources[prefs] || proteinSources['omnivore'];
+
+    const meals = {
+      Breakfast: [`${sources[0]} (protein source)`, 'Whole grain (e.g. oats or toast)', 'Fruit (banana or berries)'],
+      Lunch: [`${sources[2] || sources[1]} (protein)`, 'Complex carbs (brown rice / quinoa)', 'Mixed vegetables'],
+      Dinner: [`${sources[3] || sources[2]} (protein)`, 'Starchy veg or small portion of grains', 'Leafy salad / steamed veg'],
+      Snack: ['Nuts or seeds', 'Greek yogurt or hummus with veg', 'Piece of fruit']
+    };
+
+    const weeklyPlan = {
+      Monday: 'Focus on balanced meals with high protein',
+      Tuesday: 'Add extra vegetables and hydrate well',
+      Wednesday: 'Moderate carbs, emphasize protein',
+      Thursday: 'Include healthy fats and whole grains',
+      Friday: 'Slightly higher carbs if active',
+      Saturday: 'Meal prep for upcoming week',
+      Sunday: 'Rest and recovery - lighter meals'
+    };
+
+    const exerciseRecommendations = ['30-45 minutes moderate cardio 3x/week', '2-3 strength training sessions of 30 minutes', '1 rest or mobility day per week'];
+
+    const nutritionAnalysis = {
+      strengths: ['Reasonable calorie target', 'Good emphasis on protein', 'Includes hydration guidance'],
+      considerations: ['Monitor portion sizes', 'Adjust carbs around workouts', 'Watch added sugars and processed foods']
+    };
+
+    const tips = [
+      'Prioritize protein at each meal',
+      'Prepare meals in advance to stay consistent',
+      'Drink water regularly throughout the day',
+      'Include colorful vegetables for micronutrients',
+      'Track progress and adjust calories weekly'
+    ];
+
+    return {
+      calories,
+      macros: { protein: proteinG, carbs: carbsG, fats: fatsG },
+      hydration: `${hydrationLiters} L per day (approx.)`,
+      meals,
+      weeklyPlan,
+      exerciseRecommendations,
+      nutritionAnalysis,
+      tips
+    };
+  };
   
 
   
@@ -618,7 +749,7 @@ Return JSON:
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="px-8 pt-28 w-full mx-auto flex flex-col gap-8"
+      className="px-4 md:px-8 pt-20 md:pt-28 w-full max-w-6xl mx-auto flex flex-col gap-8"
     >
       {/* Animated background gradient */}
       
@@ -995,7 +1126,7 @@ Return JSON:
               </div>
 
               {/* Macros */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 {[
                   { label: "Calories", value: `${dietPlan.calories} kcal`, icon: Flame, color: "from-orange-500 to-red-500" },
                   { label: "Protein", value: `${dietPlan.macros.protein}g`, icon: Target, color: "from-blue-500 to-indigo-500" },
